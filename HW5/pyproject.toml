@@ -1,0 +1,13 @@
+[project]
+name = "hw5"
+version = "0.1.0"
+dependencies = [
+  "numpy",
+  "pandas",
+  "matplotlib",
+  "pyarrow",
+  "yfinance",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["HW5"]
