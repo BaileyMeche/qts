@@ -34,6 +34,3 @@ Covers:
 - no-lookahead invariance,
 - `q_t` lag alignment,
 - pipeline smoke metrics.
-
-## Notebook spine
-- Open `HW5/HW5_spine.ipynb` to run tests, execute the full package pipeline, and display all generated tables/plots in one place.
