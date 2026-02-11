@@ -52,10 +52,24 @@ def load_or_fetch_equity_adj_close(
     start: pd.Timestamp,
     end: pd.Timestamp,
 ) -> pd.DataFrame:
+    """Load cached equity adjusted closes, or download and cache.
+
+    Notes
+    -----
+    - Prefer local cache if available.
+    - If the cache is parquet but the parquet engine (pyarrow/fastparquet) is
+      missing, fall back to a yfinance download (if available) rather than
+      crashing.
+    """
+
     if cache_path.exists():
-        df = pd.read_parquet(cache_path)
-        df.index = pd.to_datetime(df.index).tz_localize(None)
-        return df.sort_index()
+        try:
+            df = pd.read_parquet(cache_path)
+            df.index = pd.to_datetime(df.index).tz_localize(None)
+            return df.sort_index()
+        except ImportError:
+            # Parquet engine missing; attempt online fallback below.
+            pass
 
     try:
         df = _download_equities(tickers=tickers, start=start, end=end)
@@ -65,5 +79,10 @@ def load_or_fetch_equity_adj_close(
         ) from exc
 
     cache_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(cache_path)
+    # Cache when possible. If parquet engine is unavailable, write CSV fallback.
+    try:
+        df.to_parquet(cache_path)
+    except ImportError:
+        csv_path = cache_path.with_suffix(".csv")
+        df.to_csv(csv_path)
     return df

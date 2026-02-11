@@ -3,6 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
+FIT_INTERCEPT = False  # match HW definitions (no constant term in f, c, q)
+RUN_INTERCEPT_ROBUSTNESS = True
 
 @dataclass(frozen=True)
 class Config:
