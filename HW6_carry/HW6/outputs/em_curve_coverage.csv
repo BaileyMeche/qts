@@ -1,0 +1,6 @@
+ccy,n_rows,n_unique_dates,min_date,max_date,n_unique_tenors,has_1y,has_5y
+BRL,3973,1763,2019-01-02,2026-01-01,3,True,True
+NGN,263,228,2019-01-02,2025-05-28,3,True,True
+PKR,349,221,2019-05-22,2025-04-04,3,True,True
+TRY,2890,1497,2019-01-03,2025-12-30,3,True,True
+ZAR,2317,1748,2019-01-02,2025-12-31,2,False,True
