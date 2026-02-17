@@ -1,0 +1,4 @@
+min_YearMonth: 1986-01-31 00:00:00
+max_YearMonth: 1992-12-31 00:00:00
+forecasted_rows: 8400
+analyst_forecasts_available: yes
