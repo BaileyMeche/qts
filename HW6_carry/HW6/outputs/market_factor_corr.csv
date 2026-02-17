@@ -1,5 +1,5 @@
 ,corr_with_port
-proxy_usd_broad,-0.04716524266878445
-proxy_emfx_basket_ret,0.058133107999614096
-proxy_rates_d_gbp5y,0.019783120157194776
-proxy_rates_d_sonia,0.033842657155480564
+usd_proxy,0.9933544524802352
+em_fx_basket,-0.6187835993931577
+rates_proxy_on,0.6412535630421441
+rates_proxy_5y,0.6445008964148029
