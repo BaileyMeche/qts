@@ -1,112 +1,91 @@
-# HW6 FX Carry Report
+# HW6 FX Carry (GBP Funding) — Execution Report
 
-## Spec Recap
+## 1) Data inputs and coverage
+- Notebook: `HW6/HW6_FX_Carry_Trade.ipynb`.
+- Input folders: `HW6/data/` (EM curves) and `HW6/data_clean/` (OIS + FX).
+- Sample used for backtest: **2019-01-02 to 2025-12-24** (365 weekly observations).
+- Weekly sampling uses **Wednesdays (`W-WED`)** with ±2-day tolerance and preference for delayed observations (`t, t+1, t+2, t-1, t-2`).
 
-- Weekly USD 10MM lending, GBP 8MM borrowing at OIS+50bp, entry filter uses GBP 5Y funding rate: s5_lend >= s5_fund + 50bp.
+## 2) Methodology and USD cash-flow accounting
+- Strategy evaluates each EM currency weekly with USD asset notional of **$10MM**.
+- Funding leg borrows **$8MM equivalent in GBP** at **OIS + 50bp** (5x leverage proxy).
+- Lending leg buys a **5Y par bond** in local currency (quarterly coupons, coupon = entry `s5`).
+- Entry condition: trade only if `s5_lend >= s5_fund + 50bp`.
+- Since GBP swap pillars were not present in provided curve files, `s5_fund` threshold uses **UK OIS proxy** only for the entry filter; borrowing accrual remains OIS+50bp.
+- One-week MTM: repriced lending leg with new local curve and tenor `5 - 1/52`; borrowing leg uses FX move plus one-week accrual with ΔV=0 assumption in funding bond.
 
-- Lending MTM shifts all coupon/principal times by 1/52 and reprices on exit curve (dirty pricing via shifted cashflows).
+## 3) Curve bootstrap / pricing implementation
+- Linear interpolation over observed curve tenors.
+- Recursive quarterly discount-factor bootstrap from par-rate identity.
+- Par-bond sanity check included in notebook (`par price ≈ 1.0`).
 
-## Data & Coverage
+## 4) Per-currency performance
+| ccy | mean_weekly | vol_weekly | sharpe_weekly | max_drawdown | active_weeks |
+|---|---|---|---|---|---|
+| BRL | -0.004406 | 0.119596 | -0.036840 | -0.994292 | 365 |
+| ZAR | -0.003718 | 0.084829 | -0.043825 | -0.979875 | 365 |
+| NGN | -0.011380 | 0.199911 | -0.056925 | -1.146011 | 365 |
+| PKR | -0.023254 | 0.115817 | -0.200783 | -0.999989 | 345 |
+| TRY | -0.042414 | 0.211014 | -0.201001 | -1.000414 | 365 |
 
-- EM curves sourced from ../../Data/ with fallback ./data (manifest has exact files).
-
-- OIS/FX/funding curve raw from ./data_clean/.
-
-- Weekly window: 2019-08-07 to 2024-05-29, N=4.
-
-## Funding 5Y Construction
-
-- GBP 5Y funding series constructed from local BoE raw OIS spot-curve file (not overnight proxy).
-
-- Overnight OIS is used only for borrowing accrual +50bp.
-
-## Methodology
-
-- Par-curve bootstrap and discounting follow Zero/Spot curve conventions (linear interpolation + recursive DF solve).
-
-- Cashflow schedule shift validation: times_exit_full = times_entry - 1/52 with assertion in notebook.
-
-## Results
-
-| ccy | weeks_available | weeks_traded | active_frac | mean_weekly_ret_cond_active | vol_weekly_ret_cond_active | mean_weekly_ret_uncond | vol_weekly_ret_uncond | sharpe_weekly_cond_active | sharpe_ann_cond_active | pnl_sum_usd | max_dd_wealth |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| ZAR | 4 | 4 | 1.000000 | -0.102862 | 0.707374 | -0.102862 | 0.707374 | -0.145415 | -1.048600 | -1630638.371442 | -0.999999 |
-| PKR | 4 | 4 | 1.000000 | -0.105383 | 0.674912 | -0.105383 | 0.674912 | -0.156143 | -1.125966 | -3559741.119065 | -0.999999 |
-| NGN | 4 | 4 | 1.000000 | -0.370258 | 0.577496 | -0.370258 | 0.577496 | -0.641144 | -4.623354 | -8818172.324659 | -0.999999 |
-| TRY | 4 | 4 | 1.000000 | -0.431071 | 0.485688 | -0.431071 | 0.485688 | -0.887547 | -6.400192 | -10394276.481219 | -1.000000 |
-| BRL | 4 | 4 | 1.000000 | -0.663799 | 0.307992 | -0.663799 | 0.307992 | -2.155249 | -15.541722 | -6175872.887402 | -1.000000 |
-
-| count | mean | std | min | 25% | 50% | 75% | max |
-|---|---|---|---|---|---|---|---|
-| 4.000000 | -0.334675 | 0.457617 | -0.999999 | -0.422065 | -0.189021 | -0.101631 | 0.039343 |
-| 4.000000 | 0.192646 | 0.385290 | 0.000001 | 0.000001 | 0.000001 | 0.192646 | 0.770580 |
-| 4.000000 | -0.749999 | 0.500000 | -0.999999 | -0.999999 | -0.999999 | -0.749999 | 0.000000 |
-| 4.000000 | 5.000000 | 0.000000 | 5.000000 | 5.000000 | 5.000000 | 5.000000 | 5.000000 |
+## 5) Portfolio performance (equal-weight over active positions)
+| Metric | Value |
+|---|---:|
+| Mean weekly return | -0.016921 |
+| Weekly volatility | 0.080687 |
+| Weekly Sharpe | -0.209713 |
+| Approx annualized return | -0.879905 |
+| Approx annualized vol | 0.581846 |
+| Max drawdown | -0.999568 |
+| Average active positions | 4.945205 |
 
 _Figure omitted from deliverables (binary PNG removed)._
 
-_Figure omitted from deliverables (binary PNG removed)._
+## 6) Correlation across currency strategy returns
+| ccy | BRL | NGN | PKR | TRY | ZAR |
+|---|---|---|---|---|---|
+| BRL | 1.000 | 0.027 | 0.071 | 0.105 | 0.392 |
+| NGN | 0.027 | 1.000 | 0.188 | 0.077 | 0.084 |
+| PKR | 0.071 | 0.188 | 1.000 | 0.077 | 0.107 |
+| TRY | 0.105 | 0.077 | 0.077 | 1.000 | 0.060 |
+| ZAR | 0.392 | 0.084 | 0.107 | 0.060 | 1.000 |
 
 _Figure omitted from deliverables (binary PNG removed)._
 
-_Figure omitted from deliverables (binary PNG removed)._
+## 7) Contribution diagnostics (best/worst)
+### Best Sharpe contributors (standalone)
+| ccy | mean_weekly | vol_weekly | sharpe_weekly | max_drawdown | active_weeks |
+|---|---|---|---|---|---|
+| BRL | -0.004406 | 0.119596 | -0.036840 | -0.994292 | 365 |
+| ZAR | -0.003718 | 0.084829 | -0.043825 | -0.979875 | 365 |
 
-## Drop-One Diagnostics
+### Worst drawdown contributors (standalone)
+| ccy | mean_weekly | vol_weekly | sharpe_weekly | max_drawdown | active_weeks |
+|---|---|---|---|---|---|
+| NGN | -0.011380 | 0.199911 | -0.056925 | -1.146011 | 365 |
+| TRY | -0.042414 | 0.211014 | -0.201001 | -1.000414 | 365 |
 
-| portfolio | sharpe_weekly | sharpe_ann | max_dd_wealth |
-|---|---|---|---|
-| full | -0.731342 | -5.273785 | -0.999999 |
-| ex_BRL | -0.491630 | -3.545197 | -0.999999 |
-| ex_NGN | -0.710109 | -5.120670 | -0.999999 |
-| ex_PKR | -0.892174 | -6.433556 | -0.999999 |
-| ex_TRY | -0.655194 | -4.724673 | -0.999999 |
-| ex_ZAR | -0.898139 | -6.476573 | -0.999999 |
+### Drop-one portfolio Sharpe diagnostic
+| ccy | drop_one_sharpe | delta_vs_base |
+|---|---|---|
+| NGN | -0.227483 | -0.017770 |
+| BRL | -0.221356 | -0.011642 |
+| ZAR | -0.216449 | -0.006736 |
+| PKR | -0.170402 | 0.039311 |
+| TRY | -0.131668 | 0.078045 |
 
-## Market Factors
+Interpretation: removing TRY or PKR improves portfolio Sharpe most; removing NGN/BRL worsens Sharpe.
 
-| index | corr_with_port |
-|---|---|
-| usd_proxy | 0.993354 |
-| em_fx_basket | -0.618784 |
-| rates_proxy_on | 0.641254 |
-| rates_proxy_5y | 0.644501 |
+## 8) Robustness checks implemented
+- Wednesday alignment with tolerance and deterministic tie-break.
+- Data-schema robustness for OIS/FX/curve file layouts; FX quote orientation check via GBP sanity range.
+- Interpolation fallback where tenors are incomplete.
 
-| model | factor | alpha | beta | t_beta_hac4 | r2 | n |
-|---|---|---|---|---|---|---|
-| univariate | usd_proxy | -0.130720 | 15.316309 | 50.343581 | 0.986753 | 3 |
-| univariate | em_fx_basket | -0.569252 | -0.715527 | -3.053683 | 0.382893 | 3 |
-| univariate | rates_proxy_on | -0.575616 | 13.753722 | 3.236653 | 0.411206 | 3 |
-| univariate | rates_proxy_5y | -0.577892 | 13.947713 | 3.264792 | 0.415381 | 3 |
-| multivariate | const | -0.214111 | -0.214111 | -0.000693 | 0.999250 | 3 |
-| multivariate | usd_proxy | -0.214111 | 13.570312 | 0.001439 | 0.999250 | 3 |
-| multivariate | em_fx_basket | -0.214111 | 0.171875 | 0.000005 | 0.999250 | 3 |
-| multivariate | rates_proxy_5y | -0.214111 | 6.750000 | 0.000027 | 0.999250 | 3 |
+## 9) Carry intuition
+- Carry comes from rate differential, but short-horizon FX moves can dominate and induce crash-like losses.
+- Negative realized Sharpe here suggests FX depreciation and repricing outweighed coupon carry.
 
-Carry framing: factor signs are consistent with carry-vs-crash intuition where USD/risk shocks can dominate carry accrual.
-
-## Robustness & Guardrails
-
-| series | missing_frac |
-|---|---|
-| ois_on | 0.000000 |
-| gbp5_fund | 0.000000 |
-| fx_BRL | 0.000000 |
-| fx_GBP | 0.000000 |
-| fx_NGN | 0.000000 |
-| fx_PKR | 0.000000 |
-| fx_TRY | 0.000000 |
-| fx_ZAR | 0.000000 |
-| curve_BRL | 0.000000 |
-| curve_NGN | 0.000000 |
-| curve_PKR | 0.000000 |
-| curve_TRY | 0.000000 |
-| curve_ZAR | 0.000000 |
-
-| ccy | weeks_traded | active_frac | spread_mean | spread_p5 | spread_p50 | spread_p95 |
-|---|---|---|---|---|---|---|
-| BRL | 4 | 1.000000 | 0.054475 | 0.050813 | 0.053537 | 0.059452 |
-| NGN | 4 | 1.000000 | 0.116023 | 0.106963 | 0.116818 | 0.123969 |
-| PKR | 4 | 1.000000 | 0.118089 | 0.104946 | 0.118284 | 0.130958 |
-| TRY | 4 | 1.000000 | 0.196872 | 0.138591 | 0.199384 | 0.251636 |
-| ZAR | 4 | 1.000000 | 0.076794 | 0.068080 | 0.076939 | 0.085304 |
-| PORTFOLIO | 20 | nan | nan | nan | 5.000000 | nan |
+## 10) Limitations
+- `Carry_Concept__FTSE.pdf` and `Zero_And_Spot_Curves.ipynb` were not found in this repo snapshot, so equivalent methodology was implemented from first principles.
+- GBP 5Y swap series unavailable; OIS proxy used for threshold only.
+- Linear interpolation and sparse curve points may bias short-horizon MTM.

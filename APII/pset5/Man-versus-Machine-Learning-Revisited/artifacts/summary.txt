@@ -1,0 +1,4 @@
+min_YearMonth: N/A (df_train_new.parquet missing)
+max_YearMonth: N/A (df_train_new.parquet missing)
+forecasted_rows: 0
+analyst_forecasts_available: unknown (RF/NN outputs missing)

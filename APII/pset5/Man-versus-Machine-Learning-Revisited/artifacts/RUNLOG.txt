@@ -1,0 +1,41 @@
+# RUNLOG
+Tue Feb 17 02:26:36 UTC 2026
+
+## Step 1 — Environment check + install
+$ python --version
+Python 3.12.12
+$ pip install -r requirements.txt
+requirements.txt missing
+$ pip install numpy pandas pyarrow fastparquet scikit-learn jupyter nbconvert matplotlib tqdm torch
+Requirement already satisfied: numpy in /root/.pyenv/versions/3.12.12/lib/python3.12/site-packages (2.4.2)
+Requirement already satisfied: pandas in /root/.pyenv/versions/3.12.12/lib/python3.12/site-packages (3.0.0)
+Requirement already satisfied: pyarrow in /root/.pyenv/versions/3.12.12/lib/python3.12/site-packages (23.0.1)
+WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProxyError('Cannot connect to proxy.', OSError('Tunnel connection failed: 403 Forbidden'))': /simple/fastparquet/
+WARNING: Retrying (Retry(total=3, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProxyError('Cannot connect to proxy.', OSError('Tunnel connection failed: 403 Forbidden'))': /simple/fastparquet/
+WARNING: Retrying (Retry(total=2, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProxyError('Cannot connect to proxy.', OSError('Tunnel connection failed: 403 Forbidden'))': /simple/fastparquet/
+WARNING: Retrying (Retry(total=1, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProxyError('Cannot connect to proxy.', OSError('Tunnel connection failed: 403 Forbidden'))': /simple/fastparquet/
+WARNING: Retrying (Retry(total=0, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProxyError('Cannot connect to proxy.', OSError('Tunnel connection failed: 403 Forbidden'))': /simple/fastparquet/
+ERROR: Could not find a version that satisfies the requirement fastparquet (from versions: none)
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+ERROR: No matching distribution found for fastparquet
+$ pip freeze > artifacts/pip_freeze.txt
+
+## Step 2 — Verify WRDS data
+$ find data/WRDS -maxdepth 2 -type f | head
+$ find data/Macro -maxdepth 2 -type f | head
+$ find data/Other -maxdepth 2 -type f | head
+WRDS_FILE_COUNT=0
+STOP: data/WRDS is empty. Cannot continue preprocessing/forecast pipeline.
+
+## Step 9 — Final checklist
+MISSING_OR_EMPTY data/Results/df_train_new.parquet
+MISSING_OR_EMPTY data/Results/RF_wo_lookahead_raw_005.parquet
+MISSING_OR_EMPTY data/Results/NN_wo_lookahead_raw.parquet
+MISSING_OR_EMPTY data/Results/NN_vs_RF_MSE_woLAB.csv
+FOUND artifacts/mse_comparison_table.md
+FOUND artifacts/mse_comparison_table.csv
+FOUND artifacts/mse_improvement.csv
+FOUND artifacts/RUNLOG.txt
+FOUND writeup.md
