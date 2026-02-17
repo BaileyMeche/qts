@@ -34,6 +34,9 @@ from typing import Dict, List, Sequence, Tuple, Optional
 import numpy as np
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
+from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 @dataclass(frozen=True)
@@ -61,39 +64,24 @@ class MLPParams:
     random_state: int = 0
 
 
-def _make_mlp(params: MLPParams):
-    """Fallback lightweight model when scikit-learn is unavailable.
-
-    Returns an object exposing fit(X, y) and predict(X) using ridge-regularized
-    linear regression on standardized features.
-    """
-    class _RidgeModel:
-        def __init__(self, alpha: float = 1e-4):
-            self.alpha = float(alpha)
-            self.mu = None
-            self.sd = None
-            self.beta = None
-
-        def fit(self, X, y):
-            X = np.asarray(X, dtype=float)
-            y = np.asarray(y, dtype=float)
-            self.mu = X.mean(axis=0)
-            self.sd = X.std(axis=0)
-            self.sd[self.sd == 0] = 1.0
-            Xs = (X - self.mu) / self.sd
-            Xd = np.column_stack([np.ones(len(Xs)), Xs])
-            I = np.eye(Xd.shape[1])
-            I[0, 0] = 0.0
-            self.beta = np.linalg.pinv(Xd.T @ Xd + self.alpha * I) @ (Xd.T @ y)
-            return self
-
-        def predict(self, X):
-            X = np.asarray(X, dtype=float)
-            Xs = (X - self.mu) / self.sd
-            Xd = np.column_stack([np.ones(len(Xs)), Xs])
-            return Xd @ self.beta
-
-    return _RidgeModel(alpha=params.alpha)
+def _make_mlp(params: MLPParams) -> Pipeline:
+    """Standardize features, then fit an MLP regressor."""
+    mlp = MLPRegressor(
+        hidden_layer_sizes=params.hidden_layer_sizes,
+        activation=params.activation,
+        solver="adam",
+        alpha=params.alpha,
+        batch_size=params.batch_size,
+        learning_rate_init=params.learning_rate_init,
+        max_iter=params.max_iter,
+        early_stopping=params.early_stopping,
+        validation_fraction=params.validation_fraction,
+        n_iter_no_change=params.n_iter_no_change,
+        random_state=params.random_state,
+        verbose=False,
+    )
+    return Pipeline([("scaler", StandardScaler(with_mean=True, with_std=True)),
+                     ("mlp", mlp)])
 
 
 def _train_test_split_month(

@@ -133,17 +133,7 @@ def main():
     if args.evaluate:
         rf_path = data_results / ("RF_with_lookahead_raw_005.parquet" if args.mode == "wLAB" else "RF_wo_lookahead_raw_005.parquet")
         if not rf_path.exists():
-            cands = sorted(data_results.glob("RF*parquet"))
-            if args.mode == "woLAB":
-                nolab = [c for c in cands if "wo" in c.name.lower() or "no" in c.name.lower()]
-                if nolab:
-                    rf_path = nolab[0]
-                elif cands:
-                    rf_path = cands[0]
-            elif cands:
-                rf_path = cands[0]
-        if not rf_path.exists():
-            raise FileNotFoundError(f"Missing RF parquet in {data_results}. Run 02_EarningsForecasts.ipynb first (RF benchmark).")
+            raise FileNotFoundError(f"Missing {rf_path}. Run 02_EarningsForecasts.ipynb first (RF benchmark).")
         rf = pd.read_parquet(rf_path)
 
         summary = summarize_mse_comparison(rf_df=rf, nn_df=nn_forecast)

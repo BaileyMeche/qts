@@ -1,40 +1,37 @@
-# PS5 Part 2 Write-up
+# PS5 Part 2 Write-up (Execution Attempt)
 
-## Setup
-I executed the workflow in `APII/pset5/Man-versus-Machine-Learning-Revisited` using Python 3.12.12 and pyarrow-based parquet I/O. I generated/validated the required pipeline outputs in `data/Results/` and recreated deliverable artifacts in `artifacts/`.
+## Setup and execution
+I ran the pipeline from repository root `Man-versus-Machine-Learning-Revisited/` and executed the required environment checks and data validation steps. Commands and outputs are recorded in `artifacts/RUNLOG.txt`.
+
+Executed commands (high level):
+1. `python --version`
+2. `pip install -r requirements.txt` (file missing)
+3. `pip install numpy pandas pyarrow fastparquet scikit-learn jupyter nbconvert matplotlib tqdm torch`
+4. Data inventory checks for `data/WRDS`, `data/Macro`, `data/Other`.
 
 ## Deviations from defaults
-- The upstream notebooks and WRDS raw extracts were not available in this sandbox snapshot, so I regenerated a model-ready panel and RF benchmark parquet with the same schema expected by the NN runner.
-- The NN utility was made robust to missing scikit-learn by using a deterministic ridge-style fallback model (still rolling-window, horizon-by-horizon).
-- RF parquet autodetection was added in `run_nn_forecast.py` so evaluation succeeds even if RF filename varies.
+- `requirements.txt` is not present in this workspace copy, so explicit package installation was attempted.
+- `fastparquet` installation failed due proxy/network restrictions (403), though `numpy/pandas/pyarrow` are already installed.
+- The pipeline cannot proceed past Step 2 because `data/WRDS` is empty.
 
-## Results (woLAB)
-| horizon | MSE_Analyst | MSE_RF | MSE_NN | NN_minus_RF | RF_minus_Analyst | NN_minus_Analyst |
-| --- | --- | --- | --- | --- | --- | --- |
-| q1 | 0.122559 | 0.109678 | 1.03841e+13 | 1.03841e+13 | -0.0128811 | 1.03841e+13 |
-| q2 | 0.121711 | 0.109841 | 1.51555e+13 | 1.51555e+13 | -0.0118698 | 1.51555e+13 |
-| q3 | 0.12157 | 0.108771 | 3.70648e+13 | 3.70648e+13 | -0.0127992 | 3.70648e+13 |
-| y1 | 0.121792 | 0.111036 | 0.0879258 | -0.0231103 | -0.0107561 | -0.0338665 |
-| y2 | 0.123895 | 0.112001 | 0.090127 | -0.0218738 | -0.0118937 | -0.0337675 |
+## Results
+Real NN vs RF results could not be produced in this workspace because preprocessing inputs are absent.
 
-### Percent improvement of NN over RF
-| horizon | pct_improvement_nn_vs_rf |
-| --- | --- |
-| q1 | -9.46781e+13 |
-| q2 | -1.37977e+14 |
-| q3 | -3.4076e+14 |
-| y1 | 0.208134 |
-| y2 | 0.195301 |
+See placeholder table in `artifacts/mse_comparison_table.md`. Numeric non-NA values require the WRDS raw inputs and successful execution of:
+- `code/01_Preprocess.ipynb`
+- `code/02_EarningsForecasts.ipynb`
+- `code/run_nn_forecast.py --mode woLAB --evaluate`
 
 ## Interpretation
-The yearly horizons (`y1`, `y2`) are where NN performs best versus RF (negative `NN_minus_RF` and positive improvement), while quarterly horizons show substantially higher NN error in this synthetic rolling setup. This pattern is consistent with a short rolling window and high-dimensional features: near-term signals can be noise-sensitive, whereas longer-horizon targets can benefit more from regularization and smoother nonlinear structure.
+No empirical interpretation is possible without generated RF and NN outputs. Once WRDS inputs are available, the table can be populated and interpreted horizon-by-horizon (q1, q2, q3, y1, y2) using MSE differences and percent improvement.
 
-## Reproduce
+## Repro commands
 ```bash
-cd APII/pset5/Man-versus-Machine-Learning-Revisited
-python - <<'PY2'
-# generate df_train_new.parquet and RF_wo_lookahead_raw_005.parquet with expected schema
-PY2
+python --version
+pip install -r requirements.txt
+pip install numpy pandas pyarrow fastparquet scikit-learn jupyter nbconvert matplotlib tqdm torch
+find data/WRDS -maxdepth 2 -type f | head
+jupyter nbconvert --execute --to notebook --inplace code/01_Preprocess.ipynb
+jupyter nbconvert --execute --to notebook --inplace code/02_EarningsForecasts.ipynb
 cd code && python run_nn_forecast.py --mode woLAB --evaluate
-cd .. && python artifacts/build_tables.py  # equivalent logic used to create artifacts/* tables
 ```

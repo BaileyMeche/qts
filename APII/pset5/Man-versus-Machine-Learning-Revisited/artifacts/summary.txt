@@ -1,4 +1,4 @@
-min_YearMonth: 1986-01-31 00:00:00
-max_YearMonth: 1992-12-31 00:00:00
-forecasted_rows: 8400
-analyst_forecasts_available: yes
+min_YearMonth: N/A (df_train_new.parquet missing)
+max_YearMonth: N/A (df_train_new.parquet missing)
+forecasted_rows: 0
+analyst_forecasts_available: unknown (RF/NN outputs missing)
