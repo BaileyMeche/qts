@@ -1,0 +1,63 @@
+# RUNLOG
+
+Tue Feb 17 01:49:02 UTC 2026
+
+## Step 0: Orientation
+Attempted to locate upstream files readme.md, 00_DataDownload.ipynb, 01_Preprocess.ipynb, 02_EarningsForecasts.ipynb, 03_Main.ipynb, requirements.txt.
+MISSING readme.md
+MISSING README.md
+MISSING code/00_DataDownload.ipynb
+MISSING code/01_Preprocess.ipynb
+MISSING code/02_EarningsForecasts.ipynb
+MISSING code/03_Main.ipynb
+MISSING requirements.txt
+
+## Data folder inventory
+data/WRDS
+data/Results
+data/Other
+data/Macro
+Python 3.12.12
+
+## Package installation status
+pip install from index failed due proxy 403 (offline environment).
+MISSING pandas: ModuleNotFoundError: No module named 'pandas'
+MISSING numpy: ModuleNotFoundError: No module named 'numpy'
+MISSING sklearn: ModuleNotFoundError: No module named 'sklearn'
+MISSING pyarrow: ModuleNotFoundError: No module named 'pyarrow'
+MISSING jupyter: ModuleNotFoundError: No module named 'jupyter'
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "/workspace/qts/APII/pset5/Man-versus-Machine-Learning-Revisited/code/functions/nn_forecast.py", line 34, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
+
+## Step 3: Attempt WRDS pipeline
+$ jupyter nbconvert --execute --to notebook --inplace code/00_DataDownload.ipynb
+FAILED: missing notebook code/00_DataDownload.ipynb
+$ jupyter nbconvert --execute --to notebook --inplace code/01_Preprocess.ipynb
+FAILED: missing notebook code/01_Preprocess.ipynb
+$ jupyter nbconvert --execute --to notebook --inplace code/02_EarningsForecasts.ipynb
+FAILED: missing notebook code/02_EarningsForecasts.ipynb
+
+## Required file checks
+MISSING_OR_EMPTY data/Results/df_train_new.parquet
+MISSING_OR_EMPTY data/Results/RF_wo_lookahead_raw_005.parquet
+
+## Step 4: NN run attempt
+$ python run_nn_forecast.py --mode woLAB --evaluate
+Traceback (most recent call last):
+  File "/workspace/qts/APII/pset5/Man-versus-Machine-Learning-Revisited/code/run_nn_forecast.py", line 24, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+
+## Explicit unblock actions needed
+- Missing file(s): `code/00_DataDownload.ipynb`, `code/01_Preprocess.ipynb`, `code/02_EarningsForecasts.ipynb`, `requirements.txt`, `data/Results/df_train_new.parquet`, `data/Results/RF_wo_lookahead_raw_005.parquet`.
+- Failed commands:
+  - `pip install -r requirements.txt` (requirements file missing; network install also blocked by proxy 403).
+  - `jupyter nbconvert --execute --to notebook --inplace code/00_DataDownload.ipynb` (notebook missing).
+  - `python code/run_nn_forecast.py --mode woLAB --evaluate` (fails because dependencies/data are unavailable).
+- User action required to unblock:
+  1) Provide/populate full replication repo contents (including notebooks + requirements).
+  2) Ensure Python packages can be installed (or provide a prebuilt environment).
+  3) Place `df_train_new.parquet` and `RF_wo_lookahead_raw_005.parquet` in `data/Results/` (or run upstream notebooks in WRDS-enabled environment).
