@@ -1,11 +1,10 @@
 {
-  "timestamp_utc": "2026-02-17T04:42:20.088856+00:00",
+  "timestamp_utc": "2026-02-17T05:58:52.806403+00:00",
   "python": "3.12.12",
   "pandas": "3.0.0",
   "numpy": "2.4.2",
-  "base_dir": "/workspace/qts/HW6_carry/HW6",
   "files_chosen": {
-    "ois_overnight": "/workspace/qts/HW6_carry/HW6/data_clean/boe_IUDSOIA_sonia.parquet",
+    "ois_on": "/workspace/qts/HW6_carry/HW6/data_clean/boe_IUDSOIA_sonia.parquet",
     "fx": "/workspace/qts/HW6_carry/HW6/data_clean/nasdaq_edi_cur_usd_per_ccy_wide.parquet",
     "em_curve_files": [
       "/workspace/qts/HW6_carry/HW6/data/EmergingMkt_YC_Download_BBERG_Sheets_5.csv",
@@ -14,22 +13,13 @@
       "/workspace/qts/HW6_carry/HW6/data/EmergingMkt_YC_Download_BBERG_Sheets_2.csv",
       "/workspace/qts/HW6_carry/HW6/data/EmergingMkt_YC_Download_BBERG_Sheets_1.csv"
     ],
-    "gbp_curve_raw": "/workspace/qts/HW6_carry/HW6/data_clean/boe_ois_daily_archive_raw.parquet",
-    "gbp5y_method": "BoE OIS spot-curve raw parsed into GBP 5Y-like funding proxy from local archive"
+    "gbp_curve_raw": "/workspace/qts/HW6_carry/HW6/data_clean/boe_ois_daily_archive_raw.parquet"
   },
   "coverage": {
-    "start": "2019-08-07",
-    "end": "2024-05-29",
-    "weekly_obs": 4,
-    "currencies": [
-      "BRL",
-      "NGN",
-      "PKR",
-      "TRY",
-      "ZAR"
-    ]
+    "start": "2019-01-02",
+    "end": "2025-12-24"
   },
-  "weekly_obs": 5,
+  "weekly_obs": 365,
   "n_currencies": 5,
-  "git_commit": "2d513a7"
+  "git_commit": "71f86af"
 }
