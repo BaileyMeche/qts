@@ -1,0 +1,88 @@
+# HW6 — FX Carry (GBP Funding)
+
+## Portfolio performance
+
+| n_weeks | mean_weekly | vol_weekly | sharpe_weekly | mean_annual_lin | vol_annual | sharpe_annual | max_drawdown | terminal_wealth |
+|---|---|---|---|---|---|---|---|---|
+| 365 | -0.005638 | 0.095831 | -0.058835 | -0.293187 | 0.691044 | -0.424267 | -0.995360 | 0.022432 |
+
+## Cross-currency correlations
+
+### All-weeks
+
+| ccy | BRL | NGN | PKR | TRY | ZAR |
+|---|---|---|---|---|---|
+| BRL | 1.000000 | 0.076693 | 0.004212 | 0.080141 | 0.223936 |
+| NGN | 0.076693 | 1.000000 | 0.145122 | 0.092962 | 0.006903 |
+| PKR | 0.004212 | 0.145122 | 1.000000 | 0.155777 | -0.042048 |
+| TRY | 0.080141 | 0.092962 | 0.155777 | 1.000000 | 0.109121 |
+| ZAR | 0.223936 | 0.006903 | -0.042048 | 0.109121 | 1.000000 |
+
+### Active-overlap
+
+| ccy | BRL | NGN | PKR | TRY | ZAR |
+|---|---|---|---|---|---|
+| BRL | 1.000000 | 0.268099 | -0.000179 | 0.086245 | 0.383340 |
+| NGN | 0.268099 | 1.000000 | 0.500208 | 0.281954 | 0.083643 |
+| PKR | -0.000179 | 0.500208 | 1.000000 | 0.217237 | -0.328430 |
+| TRY | 0.086245 | 0.281954 | 0.217237 | 1.000000 | 0.182509 |
+| ZAR | 0.383340 | 0.083643 | -0.328430 | 0.182509 | 1.000000 |
+
+## Drop-one diagnostics
+
+| portfolio | sharpe_weekly | sharpe_ann | max_dd_wealth |
+|---|---|---|---|
+| ex_TRY | 0.016407 | 0.118311 | -0.900940 |
+| ex_PKR | -0.054482 | -0.392874 | -0.998419 |
+| ex_ZAR | -0.056878 | -0.410156 | -0.996624 |
+| full | -0.058835 | -0.424267 | -0.995360 |
+| ex_NGN | -0.062411 | -0.450050 | -0.994658 |
+| ex_BRL | -0.087218 | -0.628937 | -0.999942 |
+
+## Active diagnostics
+
+| entity | weeks_available | weeks_traded | spread_mean | spread_p05 | spread_p50 | spread_p95 | active_frac | weeks_with_any_position | avg_active_positions |
+|---|---|---|---|---|---|---|---|---|---|
+| BRL | 364 | 363 | 0.078460 | 0.049768 | 0.073747 | 0.107866 | 0.997253 |  |  |
+| NGN | 73 | 38 | 0.110729 | 0.081607 | 0.106797 | 0.139767 | 0.520548 |  |  |
+| PKR | 193 | 172 | 0.104988 | 0.082303 | 0.104490 | 0.128691 | 0.891192 |  |  |
+| TRY | 320 | 317 | 0.192959 | 0.065462 | 0.193459 | 0.303656 | 0.990625 |  |  |
+| ZAR | 139 | 136 | 0.056451 | 0.040246 | 0.054329 | 0.070307 | 0.978417 |  |  |
+| PORTFOLIO | 365 | 365 |  |  |  |  | 1.000000 | 365.000000 | 2.810959 |
+
+## Market factors
+
+### Correlations
+
+| factor | corr_with_port |
+|---|---|
+| usd_proxy | -0.086155 |
+| em_fx_basket | 0.071683 |
+| rates_proxy_on | -0.072268 |
+| rates_proxy_5y | -0.051844 |
+
+### HAC(4) regressions
+
+| model | regressor | beta | se_beta_hac4 | t_beta_hac4 | p_beta_hac4 | r2 | n |
+|---|---|---|---|---|---|---|---|
+| uni:usd_proxy | usd_proxy | -0.652935 | 0.363436 | -1.796563 | 0.072405 | 0.007423 | 364 |
+| uni:em_fx_basket | em_fx_basket | 0.530702 | 0.541987 | 0.979179 | 0.327492 | 0.005138 | 364 |
+| uni:rates_proxy_on | rates_proxy_on | -7.808942 | 6.378836 | -1.224195 | 0.220879 | 0.005223 | 364 |
+| uni:rates_proxy_5y | rates_proxy_5y | -3.868425 | 4.226320 | -0.915318 | 0.360025 | 0.002688 | 364 |
+| multi:all | usd_proxy | -0.429497 | 0.445890 | -0.963235 | 0.335430 | 0.014621 | 364 |
+| multi:all | em_fx_basket | 0.398579 | 0.574749 | 0.693483 | 0.488006 | 0.014621 | 364 |
+| multi:all | rates_proxy_on | -6.635189 | 6.545142 | -1.013758 | 0.310698 | 0.014621 | 364 |
+| multi:all | rates_proxy_5y | -2.074872 | 4.520876 | -0.458953 | 0.646268 | 0.014621 | 364 |
+
+## GBP 5Y funding series summary
+
+| start | end | missing_frac | min | median | max | n_obs |
+|---|---|---|---|---|---|---|
+| 2009-01-02 | 2026-02-12 | 0.000000 | 0.000024 | 0.004823 | 0.056930 | 4316 |
+
+## Figures
+
+- outputs/figures/portfolio_wealth.png
+- outputs/figures/portfolio_drawdown.png
+- outputs/figures/active_positions.png
+- outputs/figures/corr_heatmap.png
