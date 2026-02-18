@@ -1,0 +1,30 @@
+{
+  "timestamp_utc": "2026-02-18T05:33:11.149823+00:00",
+  "python": "3.13.9",
+  "pandas": "2.3.3",
+  "numpy": "2.3.3",
+  "files_chosen": {
+    "ois_on": "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data_clean\\boe_IUDSOIA_sonia.parquet",
+    "fx": "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data_clean\\nasdaq_edi_cur_usd_per_ccy_wide.parquet",
+    "em_curve_files": [
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\..\\..\\Data\\EmergingMkt_YC_Download_BBERG_Sheets_5.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data\\EmergingMkt_YC_Download_BBERG_Sheets_5.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\..\\..\\Data\\EmergingMkt_YC_Download_BBERG_Sheets_4.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data\\EmergingMkt_YC_Download_BBERG_Sheets_4.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\..\\..\\Data\\EmergingMkt_YC_Download_BBERG_Sheets_3.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data\\EmergingMkt_YC_Download_BBERG_Sheets_3.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\..\\..\\Data\\EmergingMkt_YC_Download_BBERG_Sheets_2.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data\\EmergingMkt_YC_Download_BBERG_Sheets_2.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\..\\..\\Data\\EmergingMkt_YC_Download_BBERG_Sheets_1.csv",
+      "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data\\EmergingMkt_YC_Download_BBERG_Sheets_1.csv"
+    ],
+    "gbp_curve_raw": "C:\\Users\\Owner\\Box\\Winter26\\QTS\\qts\\HW6_carry\\data_clean\\boe_ois_daily_archive_raw.parquet"
+  },
+  "coverage": {
+    "start": "2019-01-02",
+    "end": "2025-12-24"
+  },
+  "weekly_obs": 365,
+  "n_currencies": 5,
+  "git_commit": "84c6f27"
+}
