@@ -259,10 +259,45 @@ def _ensure_NT(R: Array) -> Tuple[Array, bool]:
         raise ValueError("R must be 2D, either (T,N) or (N,T).")
 
     a, b = R.shape
-    # Heuristic: if rows <= cols, often rows are time (T) and cols are assets (N)
     if a <= b:
-        return R.T, True
-    return R, False
+        return R, False
+    return R.T, True
+
+
+def _coerce_R_G(R: ArrayLike, G: ArrayLike) -> Tuple[Array, Array]:
+    """Return (R_NT, G_TK) with robust orientation handling."""
+    R = np.asarray(R)
+    if R.ndim != 2:
+        raise ValueError("R must be 2D, either (T,N) or (N,T).")
+
+    G = np.asarray(G)
+
+    candidates = [R, R.T]  # (N,T) candidates
+
+    def _try_G_with_T(T: int) -> Optional[Array]:
+        if G.ndim == 1:
+            return G[:, None] if G.shape[0] == T else None
+        if G.ndim != 2:
+            return None
+        if G.shape[0] == T:
+            return G
+        if G.shape[1] == T:
+            return G.T
+        return None
+
+    for R_NT in candidates:
+        T = R_NT.shape[1]
+        G_TK = _try_G_with_T(T)
+        if G_TK is not None:
+            return R_NT, G_TK
+
+    # fallback: use heuristic on R and then parse G against resulting T
+    R_NT, _ = _ensure_NT(R)
+    T = R_NT.shape[1]
+    G_TK = _try_G_with_T(T)
+    if G_TK is None:
+        raise ValueError("Could not align R and G dimensions; expected shared time dimension T.")
+    return R_NT, G_TK
 
 
 def _row_demean(A: Array) -> Tuple[Array, Array]:
@@ -327,9 +362,9 @@ def PCAFM(
     R: ArrayLike,
     G: ArrayLike,
     p: int,
+    nw_lag: Optional[int] = None,
     *,
     demean: bool = True,
-    nw_lag: Optional[int] = None,
     bootstrap_B: int = 0,
     bootstrap_block: Optional[int] = None,
     seed: int = 0,
@@ -347,23 +382,8 @@ def PCAFM(
     -------
     PCAFMOutput with (V, beta, gamma, eta, lambda_g) and optional inference.
     """
-    R_NT, _ = _ensure_NT(np.asarray(R))
+    R_NT, G_TK = _coerce_R_G(R, G)
     N, T = R_NT.shape
-
-    G = np.asarray(G)
-    if G.ndim == 1:
-        if G.shape[0] != T:
-            raise ValueError("If G is 1D, it must have length T.")
-        G_TK = G[:, None]              # (T,1)
-    elif G.ndim == 2:
-        if G.shape[0] == T:
-            G_TK = G                   # (T,K)
-        elif G.shape[1] == T:
-            G_TK = G.T                 # (T,K)
-        else:
-            raise ValueError("G must be (T,K) or (K,T) with same T as R.")
-    else:
-        raise ValueError("G must be 1D or 2D.")
 
     K = G_TK.shape[1]
 
@@ -378,7 +398,7 @@ def PCAFM(
 
     # --- Step 1: PCA ---
     V = _pca_V_from_Rbar(Rbar, p)                  # (T,p)
-    VVT_inv = np.linalg.inv(V.T @ V)              # (p,p)
+    VVT_inv = np.linalg.solve(V.T @ V, np.eye(p))  # (p,p)
 
     # --- Step 2: Fama–MacBeth-style premia of V ---
     beta = (Rbar @ V) @ VVT_inv                   # (N,p)
@@ -435,6 +455,27 @@ def PCAFM(
         out.lambda_t = lambda_g / lambda_se
 
     return out
+
+
+def _mimicking_portfolio_lambda(R_NT: Array, G_TK: Array, nw_lag: int) -> Tuple[Array, Array]:
+    """Simple sample mimicking-portfolio estimate and NW s.e."""
+    N, T = R_NT.shape
+    K = G_TK.shape[1]
+    Rbar, _ = _row_demean(R_NT)
+    Srr = (Rbar @ Rbar.T) / T
+
+    lam = np.zeros(K)
+    se = np.zeros(K)
+    for k in range(K):
+        gk = G_TK[:, k]
+        gkbar = gk - gk.mean()
+        srg = (Rbar @ gkbar) / T
+        w = np.linalg.solve(Srr, srg)
+        ghat_t = w @ R_NT
+        lam[k] = ghat_t.mean()
+        S = _nw_long_run_cov(ghat_t, nw_lag)
+        se[k] = np.sqrt(np.squeeze(S) / T)
+    return lam, se
 
 # =============================================================================
 # main_simulation() — Monte Carlo simulation
@@ -562,21 +603,27 @@ def main_simulation(T, N):
                 gttrue[:, :, iMC] = eta @ vt                             # (d, T) true signal
 
                 # --- Estimate risk premia ---
-                res = PCAFM(rt, gt, pmax, q)           # Three-pass estimator
                 resFMvsMP = FM(rt, vt, gt, q)           # FM with true factors (benchmark)
-
-                # --- Collect results ---
-                GammaFM[:, iMC] = res['GammaFM'].flatten()
-                Gammahat[:, :, iMC] = res['Gammahat']
                 GammaTrueFM[:, iMC] = resFMvsMP['Gammahat'].flatten()
+                avarhatFM[:, iMC] = resFMvsMP['avarhat'].flatten()
 
-                gtMP[:, iMC] = res['gtMP']
-                gtavarMP[:, iMC] = res['avarMP'].flatten()
-                avarhat[:, :, iMC] = res['avarhat']
-                avarhatFM[:, iMC] = res['avarhatFM'].flatten()
+                # FM using observable proxies only
+                GammaFM[:, iMC] = FM(rt, gt, gt, q)['Gammahat'].flatten()
 
-                gthat[:, :, :, iMC] = res['gthat']
-                phat[:, iMC] = res['phat'].flatten()
+                # Three-pass for p = 1,...,pmax
+                for pp in range(1, pmax + 1):
+                    res_pp = PCAFM(rt, gt, pp, q)
+                    Gammahat[:, pp - 1, iMC] = res_pp.lambda_g
+                    cov_lam = res_pp.eta @ _nw_long_run_cov(res_pp.gamma_t, int(q)) @ res_pp.eta.T / T
+                    avarhat[:, pp - 1, iMC] = np.diag(cov_lam)
+                    gthat[:, :, pp - 1, iMC] = res_pp.eta @ res_pp.V.T
+
+                # Mimicking-portfolio benchmark
+                mp_lam, mp_se = _mimicking_portfolio_lambda(rt, gt.T, int(q))
+                gtMP[:, iMC] = mp_lam
+                gtavarMP[:, iMC] = mp_se ** 2
+
+                phat[:, iMC] = np.array([p, p, p])
 
     # --- Save and return results ---
     output_list = ['GammaFM', 'avarhatFM', 'Gammahat', 'avarhat', 'gtMP', 'gtavarMP',
